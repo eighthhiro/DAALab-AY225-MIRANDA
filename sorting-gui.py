@@ -216,13 +216,35 @@ class ModernSortingGUI:
             fg=self.colors['text']
         ).pack(side=tk.LEFT, padx=15, pady=12)
         
-        # Progress bar
+        # Right side container for progress bar and clear button
+        right_container = tk.Frame(header, bg=self.colors['surface'])
+        right_container.pack(side=tk.RIGHT, fill=tk.X, expand=True, padx=15)
+        
+        # Progress bar (70%)
+        progress_frame = tk.Frame(right_container, bg=self.colors['surface'])
+        progress_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
         self.progress = ttk.Progressbar(
-            header,
+            progress_frame,
             mode='indeterminate',
             style="Modern.Horizontal.TProgressbar"
         )
-        self.progress.pack(side=tk.RIGHT, padx=15, fill=tk.X, expand=True)
+        self.progress.pack(fill=tk.X, pady=12)
+        
+        # Spacer
+        tk.Frame(right_container, bg=self.colors['surface'], width=10).pack(side=tk.LEFT)
+        
+        # Clear button (30%)
+        clear_btn_frame = tk.Frame(right_container, bg=self.colors['surface'])
+        clear_btn_frame.pack(side=tk.LEFT)
+        
+        self.create_button(
+            clear_btn_frame,
+            "🗑️  Clear",
+            self.clear_results,
+            self.colors['surface_light'],
+            hover_color=self.colors['border']
+        ).pack(pady=6)
         
         # Results text area
         text_frame = tk.Frame(parent, bg=self.colors['border'], bd=1)
@@ -287,7 +309,7 @@ class ModernSortingGUI:
                     "success"
                 )
                 self.append_result(
-                    f"Preview: {str(self.data[:20])}{'...' if len(self.data) > 20 else ''}\n\n",
+                    f"Preview (first 20): {str(self.data[:20])}{'...' if len(self.data) > 20 else ''}\n\n",
                     "dim"
                 )
                 
@@ -379,7 +401,12 @@ class ModernSortingGUI:
                 
                 self.append_result(f"\n{name}\n", "header")
                 self.append_result(f"Time: {elapsed_time:.6f} seconds\n", "success")
-                self.append_result(f"Sorted: {sorted_data[:30]}{'...' if len(sorted_data) > 30 else ''}\n\n", "dim")
+                self.append_result(f"Dataset size: {len(sorted_data):,} numbers\n\n", "dim")
+                
+                # Display entire sorted dataset
+                self.append_result("Complete Sorted Dataset:\n", "header")
+                self.append_result(self._format_dataset(sorted_data))
+                self.append_result("\n\n")
                 
                 self.status_label.config(text=f"{name} completed")
                 
@@ -389,6 +416,14 @@ class ModernSortingGUI:
         finally:
             self.is_sorting = False
             self.progress.stop()
+    
+    def _format_dataset(self, data: List[int], items_per_line: int = 10) -> str:
+        """Format the dataset for display with a specified number of items per line"""
+        lines = []
+        for i in range(0, len(data), items_per_line):
+            chunk = data[i:i + items_per_line]
+            lines.append(', '.join(map(str, chunk)))
+        return '\n'.join(lines)
     
     def _run_all_sorts(self):
         self.status_label.config(text="Running all algorithms...")
@@ -418,8 +453,12 @@ class ModernSortingGUI:
         for rank, (name, elapsed_time) in enumerate(results, 1):
             self.append_result(f"{rank}. {name}: {elapsed_time:.6f}s\n")
         
+        # Display complete sorted dataset from the last algorithm
         self.last_sorted_data = sorted_data
-        self.append_result("\n")
+        self.append_result(f"\nComplete Sorted Dataset ({len(sorted_data):,} numbers):\n", "header")
+        self.append_result(self._format_dataset(sorted_data))
+        self.append_result("\n\n")
+        
         self.status_label.config(text="All algorithms completed")
     
     def append_result(self, text: str, tag=None):
@@ -455,6 +494,14 @@ class ModernSortingGUI:
             
         except Exception as e:
             messagebox.showerror("Error", f"Error saving file: {e}")
+    
+    def clear_results(self):
+        """Clear the results text area"""
+        self.results_text.config(state=tk.NORMAL)
+        self.results_text.delete(1.0, tk.END)
+        self.results_text.config(state=tk.DISABLED)
+        self.status_label.config(text="Results cleared")
+
 
 
 def main():

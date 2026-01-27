@@ -19,8 +19,9 @@ All algorithms are implemented manually (no built-in sorting functions) and sort
    python sort-algo.py
    ```
 
-2. **Load your data**:
+2. **Load your data and select size**:
    - Click "Load Data File" and select a `.txt` file containing numbers (separated by spaces, commas, or newlines)
+   - Select the preferred dataset size to sort
 
 3. **Choose your analysis**:
    - **Individual Algorithm**: Click any algorithm button to run it solo

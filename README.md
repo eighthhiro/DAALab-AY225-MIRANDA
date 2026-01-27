@@ -26,7 +26,13 @@ Demonstrates the significant performance gap between simple sorts and divide-and
 
 ## 🚀 Getting Started
 
-Each lab work folder contains its own README with specific instructions for running the programs.
+- Each lab work folder contains its own README with specific instructions for running the programs.
+- But first, clone the repository to your machine IDE
+- Go to VSCode > Terminal > Then type
+
+   ```bash
+   git clone https://github.com/eighthhiro/DAALab-AY225-MIRANDA.git
+   ```
 
 ## 📋 Requirements
 

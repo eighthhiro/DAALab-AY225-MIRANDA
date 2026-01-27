@@ -15,7 +15,7 @@ The GUI displays detailed performance metrics including execution time, number o
 
 1. **Run the program**:
    ```bash
-   python sorting_gui_bubble_variants.py
+   python bubblesort.py
    ```
 
 2. **Load your data**:

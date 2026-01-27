@@ -16,7 +16,7 @@ All algorithms are implemented manually (no built-in sorting functions) and sort
 
 1. **Run the program**:
    ```bash
-   python sorting_comparison_gui.py
+   python sort-algo.py
    ```
 
 2. **Load your data**:

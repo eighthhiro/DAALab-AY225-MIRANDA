@@ -38,6 +38,7 @@ Demonstrates the significant performance gap between simple sorts and divide-and
 
 - Python 3.x
 - tkinter (usually comes with Python)
+- Git
 
 ## 📝 Note
 

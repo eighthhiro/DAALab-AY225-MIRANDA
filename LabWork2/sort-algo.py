@@ -13,6 +13,7 @@ class ModernSortingGUI:
         
         # Data storage
         self.data = []
+        self.full_data = []  # Store the complete loaded dataset
         self.last_sorted_data = None
         self.is_sorting = False
         
@@ -47,6 +48,23 @@ class ModernSortingGUI:
             background=self.colors['primary'],
             borderwidth=0,
             thickness=4
+        )
+        
+        # Configure combobox
+        style.configure(
+            "TCombobox",
+            fieldbackground=self.colors['surface_light'],
+            background=self.colors['surface_light'],
+            foreground=self.colors['text'],
+            arrowcolor=self.colors['text'],
+            borderwidth=0,
+            relief="flat"
+        )
+        
+        style.map('TCombobox',
+            fieldbackground=[('readonly', self.colors['surface_light'])],
+            selectbackground=[('readonly', self.colors['primary'])],
+            selectforeground=[('readonly', self.colors['text'])]
         )
     
     def create_widgets(self):
@@ -125,7 +143,36 @@ class ModernSortingGUI:
             "📁  Load Data File",
             self.load_file,
             self.colors['primary']
-        ).pack(fill=tk.X, padx=15, pady=(0, 15))
+        ).pack(fill=tk.X, padx=15, pady=(0, 12))
+        
+        # Dataset size selector with improved styling
+        tk.Label(
+            load_section,
+            text="Dataset Size",
+            font=("Segoe UI", 9, "bold"),
+            bg=self.colors['surface'],
+            fg=self.colors['text'],
+            anchor=tk.W
+        ).pack(anchor=tk.W, padx=15, pady=(0, 8))
+        
+        # Custom styled frame for dropdown
+        dropdown_frame = tk.Frame(load_section, bg=self.colors['surface_light'], bd=0)
+        dropdown_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
+        
+        # Dropdown for dataset size
+        self.size_var = tk.StringVar(value="All")
+        size_options = ["All", "1,000", "5,000", "10,000", "20,000", "50,000", "100,000"]
+        
+        self.size_dropdown = ttk.Combobox(
+            dropdown_frame,
+            textvariable=self.size_var,
+            values=size_options,
+            state="readonly",
+            font=("Segoe UI", 10),
+            width=25
+        )
+        self.size_dropdown.pack(fill=tk.X, padx=8, pady=8)
+        self.size_dropdown.bind("<<ComboboxSelected>>", self.on_size_change)
         
         # Algorithms section
         algo_section = self.create_section(parent, "Sorting Algorithms", top_margin=15)
@@ -357,15 +404,18 @@ class ModernSortingGUI:
         try:
             with open(file_path, 'r') as file:
                 content = file.read()
-                self.data = [
+                self.full_data = [
                     int(x.strip()) 
                     for x in content.replace(',', ' ').split() 
                     if x.strip().lstrip('-').isdigit()
                 ]
                 
-                if not self.data:
+                if not self.full_data:
                     messagebox.showerror("Error", "No valid numbers found in the file.")
                     return
+                
+                # Apply size filter
+                self.apply_size_filter()
                 
                 # Update UI
                 filename = file_path.split('/')[-1]
@@ -374,12 +424,16 @@ class ModernSortingGUI:
                     fg=self.colors['success']
                 )
                 
-                self.data_count_label.config(text=f"{len(self.data):,} numbers loaded")
+                self.update_data_count_label()
                 self.status_label.config(text="Data loaded successfully")
                 
                 self.append_result(
-                    f"Loaded {len(self.data):,} numbers from {filename}\n",
+                    f"Loaded {len(self.full_data):,} numbers from {filename}\n",
                     "success"
+                )
+                self.append_result(
+                    f"Using {len(self.data):,} numbers for sorting\n",
+                    "dim"
                 )
                 self.append_result(
                     f"Preview (first 20): {str(self.data[:20])}{'...' if len(self.data) > 20 else ''}\n\n",
@@ -388,6 +442,54 @@ class ModernSortingGUI:
                 
         except Exception as e:
             messagebox.showerror("Error", f"Error reading file: {e}")
+    
+    def on_size_change(self, event=None):
+        """Handle dataset size selection change"""
+        if not self.full_data:
+            messagebox.showwarning("Warning", "Please load a data file first.")
+            self.size_var.set("All")
+            return
+        
+        self.apply_size_filter()
+        self.update_data_count_label()
+        
+        self.append_result(
+            f"\nDataset size changed to: {self.size_var.get()}\n",
+            "success"
+        )
+        self.append_result(
+            f"Using {len(self.data):,} numbers for sorting\n\n",
+            "dim"
+        )
+        self.status_label.config(text=f"Dataset size set to {self.size_var.get()}")
+    
+    def apply_size_filter(self):
+        """Apply the selected dataset size filter"""
+        size_str = self.size_var.get()
+        
+        if size_str == "All":
+            self.data = self.full_data.copy()
+        else:
+            # Parse the size (remove commas)
+            size = int(size_str.replace(",", ""))
+            
+            if len(self.full_data) >= size:
+                self.data = self.full_data[:size]
+            else:
+                self.data = self.full_data.copy()
+                messagebox.showinfo(
+                    "Info", 
+                    f"File contains only {len(self.full_data):,} numbers. Using all available data."
+                )
+    
+    def update_data_count_label(self):
+        """Update the data count label with current dataset info"""
+        if self.size_var.get() == "All":
+            self.data_count_label.config(text=f"{len(self.data):,} numbers loaded")
+        else:
+            self.data_count_label.config(
+                text=f"{len(self.data):,} of {len(self.full_data):,} numbers"
+            )
     
     def bubble_sort(self, arr: List[int]) -> List[int]:
         """
